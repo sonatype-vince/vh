@@ -180,7 +180,7 @@
     "@types/i18n": "^0.13.12",
     "@types/js-yaml": "^4.0.9",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/jws": "^3.2.10",
+    "@types/jws": "^3.2.11",
     "@types/lodash": "^4.17.14",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.2.0",

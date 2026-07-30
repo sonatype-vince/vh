@@ -43,7 +43,7 @@
     "@ngx-translate/core": "^18.0.0",
     "@ngx-translate/http-loader": "^18.0.0",
     "@wagmi/core": "^3.6.4",
-    "canvas-confetti": "^1.9.3",
+    "canvas-confetti": "^1.9.4",
     "codemirror": "^6.0.2",
     "cookieconsent": "^3.1.1",
     "ethers": "^5.7.2",

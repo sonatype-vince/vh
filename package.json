@@ -128,7 +128,7 @@
     "helmet": "^8.3.0",
     "html-entities": "^2.6.0",
     "i18n": "^0.15.3",
-    "js-yaml": "^5.2.2",
+    "js-yaml": "^5.2.3",
     "jsonwebtoken": "^9.0.3",
     "libxml2-wasm": "^0.7.1",
     "marsdb": "^0.6.11",

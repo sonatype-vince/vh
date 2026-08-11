@@ -6,12 +6,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  # Fixes the ERESOLVE typescript/typescript-eslint conflict.
+  # Env-based npm config also reaches the nested frontend install.
+  npm_config_legacy_peer_deps: "true"
+  # Repo's .npmrc sets package-lock=false; override so lockfiles are
+  # generated — Sonatype will scan these in stage 2.
+  npm_config_package_lock: "true"
+
 jobs:
   build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write   # only needed if you enable SARIF upload below
+    runs-on: self-hosted   # your Mac (MBP-FHYXMQJ76D)
 
     steps:
       - name: Checkout
@@ -20,29 +25,12 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22   # repo engines require Node 22 - 26
+          node-version: 22
 
       # Juice Shop's postinstall hook does the full compile:
-      # installs frontend deps, builds the Angular frontend, and runs tsc for the server
+      # installs frontend deps, builds the Angular frontend, runs tsc for the server
       - name: Install dependencies & compile
         run: npm install
 
-      # ---- POST-BUILD STEP: Sonatype Lifecycle policy evaluation ----
-      - name: Sonatype Lifecycle evaluation
-        id: evaluate
-        uses: sonatype/actions/evaluate@v1
-        with:
-          iq-server-url: ${{ secrets.SONATYPE_LIFECYCLE_URL }}
-          username: ${{ secrets.SONATYPE_USERNAME }}
-          password: ${{ secrets.SONATYPE_PASSWORD }}
-          application-id: vh          # must match the app's ID in Lifecycle
-          scan-targets: package-lock.json frontend/package-lock.json
-          stage: build
-          # Optional extras:
-          # sarif-file: results.sarif
-          # upload-sarif-file: true     # surfaces findings in GitHub's Security tab
-          # fail-on-policy-warnings: true
-
-      - name: Lifecycle report link
-        if: always()
-        run: echo "Report -> ${{ steps.evaluate.outputs.report-url }}"
+      - name: Compile result
+        run: echo "Build completed OK on $(hostname)"

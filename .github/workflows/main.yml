@@ -7,11 +7,13 @@ on:
   workflow_dispatch:
 
 env:
+  # Pull ALL npm packages through your Nexus Repository proxy.
+  # Env-based config reaches the nested frontend install too.
+  npm_config_registry: http://localhost:8081/repository/demo-npm-proxy/
   # Fixes the ERESOLVE typescript/typescript-eslint conflict.
-  # Env-based npm config also reaches the nested frontend install.
   npm_config_legacy_peer_deps: "true"
   # Repo's .npmrc sets package-lock=false; override so lockfiles are
-  # generated — Sonatype will scan these in stage 2.
+  # generated (Sonatype will scan these in stage 2).
   npm_config_package_lock: "true"
 
 jobs:
@@ -26,6 +28,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # Undo the Dependabot version bumps that break the Angular build:
+      # TypeScript 7 is incompatible with Angular's compiler, and the
+      # Angular 22-next tooling doesn't match @angular/core 21.
+      # (Permanent fix: commit these versions to package.json and disable
+      # Dependabot — then this step becomes a harmless no-op.)
+      - name: Pin TypeScript 5.9 + Angular 21 toolchain
+        run: |
+          npm pkg set 'devDependencies.typescript=~5.9.3'
+          cd frontend
+          npm pkg set 'dependencies.typescript=~5.9.3'
+          npm pkg set 'dependencies.@angular/cli=^21.2.1'
+          npm pkg set 'dependencies.@angular/compiler-cli=^21.2.1'
+          npm pkg set 'devDependencies.@angular/compiler-cli=^21.2.1'
+          npm pkg set 'devDependencies.@angular/language-service=^21.2.1'
+
+      - name: Confirm npm is pointed at Nexus
+        run: npm config get registry
 
       # Juice Shop's postinstall hook does the full compile:
       # installs frontend deps, builds the Angular frontend, runs tsc for the server

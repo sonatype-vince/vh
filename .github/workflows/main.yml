@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # only needed if you enable SARIF upload below
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22   # repo engines require Node 22 - 26
+
+      # Juice Shop's postinstall hook does the full compile:
+      # installs frontend deps, builds the Angular frontend, and runs tsc for the server
+      - name: Install dependencies & compile
+        run: npm install
+
+      # ---- POST-BUILD STEP: Sonatype Lifecycle policy evaluation ----
+      - name: Sonatype Lifecycle evaluation
+        id: evaluate
+        uses: sonatype/actions/evaluate@v1
+        with:
+          iq-server-url: ${{ secrets.SONATYPE_LIFECYCLE_URL }}
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}
+          application-id: vh          # must match the app's ID in Lifecycle
+          scan-targets: package-lock.json frontend/package-lock.json
+          stage: build
+          # Optional extras:
+          # sarif-file: results.sarif
+          # upload-sarif-file: true     # surfaces findings in GitHub's Security tab
+          # fail-on-policy-warnings: true
+
+      - name: Lifecycle report link
+        if: always()
+        run: echo "Report -> ${{ steps.evaluate.outputs.report-url }}"

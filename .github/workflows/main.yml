@@ -52,6 +52,16 @@ jobs:
       - name: Install dependencies & compile
         run: npm install
 
+      # ---- FIREWALL DEMO (leave commented until quarantine is ON) ----
+      # Simulates a developer adding a critically-vulnerable dependency.
+      # lodash@4.17.4 (2017) has known critical CVEs and is NOT in this
+      # app's tree, so it won't already be in the proxy's cache. With
+      # quarantine enabled on demo-npm-proxy, Firewall blocks the download
+      # (npm gets a 403) and this step fails the build — Firewall in action.
+      # The component then appears in IQ under Firewall > Quarantine.
+      # - name: "FIREWALL DEMO: developer adds a vulnerable dependency"
+      #   run: npm install lodash@4.17.4 --prefix /tmp/firewall-demo
+
       # ---- POST-BUILD STEP: Sonatype Lifecycle SCA policy evaluation ----
       - name: Sonatype Lifecycle evaluation
         id: evaluate

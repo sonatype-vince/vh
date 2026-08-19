@@ -34,6 +34,16 @@ jobs:
           curl -fsSL -o package.json https://raw.githubusercontent.com/juice-shop/juice-shop/v20.1.1/package.json
           curl -fsSL -o frontend/package.json https://raw.githubusercontent.com/juice-shop/juice-shop/v20.1.1/frontend/package.json
 
+      # Pin vitest to exact known-good versions. The manifest says "^4.1.1"
+      # (= newest 4.x), so every new vitest release changes what we install —
+      # and brand-new versions may not be available through the proxy yet.
+      # Exact pins make the build reproducible.
+      - name: Pin vitest to exact versions
+        run: |
+          cd frontend
+          npm pkg set 'devDependencies.vitest=4.1.1'
+          npm pkg set 'devDependencies.@vitest/coverage-v8=4.1.2'
+
       - name: Confirm npm is pointed at Nexus
         run: npm config get registry
 
@@ -43,9 +53,6 @@ jobs:
         run: npm install
 
       # ---- POST-BUILD STEP: Sonatype Lifecycle SCA policy evaluation ----
-      # Scans both lockfiles against your Lifecycle policies at the `build`
-      # stage. Policies with a "Fail" action at that stage will BREAK the
-      # build — that's the gate working.
       - name: Sonatype Lifecycle evaluation
         id: evaluate
         uses: sonatype/actions/evaluate@v1
